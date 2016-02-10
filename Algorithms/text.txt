@@ -1,0 +1,110 @@
+import sys
+import codecs
+with codecs.open(sys.argv[1], 'rb', 'utf-16-be') as infile:
+  with open('utf8encoder_out.txt', 'w+b') as outfile:
+    for line in infile:
+            outfile.write(line.encode('utf-8'))
+
+
+chr(int(result[:8],2)) + chr(int(result[8:16],2)) + chr(int(result[16:]))
+import sys
+
+result = []
+def extract_comb(s,l):
+
+    if l == len(s) - 1:
+        result.append(s)
+    else:
+        for i in range(l, len(s)):
+            t = list(s)
+            t[l], t[i] = t[i], t[l]
+            s = ''.join(t)
+            extract_comb(s, l + 1)
+            t = list(s)
+            t[l], t[i] = t[i], t[l]
+            s = ''.join(t)
+
+file = open("anagram_out.txt", "w")
+string = sys.argv[1]
+extract_comb(string,0)
+result.sort()
+for i in range(len(result)):
+    file.write(result[i]+"\n")
+
+
+import sys
+from binascii import unhexlify
+UTF16Stream = []
+
+def decode(w1):
+
+    a = int("".join(map(lambda x: '%02x' % ord(x), w1)),16)
+
+    return a
+
+fr = open(sys.argv[1],'rb')
+fw = open('utf8encoder_out.txt','w')
+
+try:
+    byte = fr.read(2)
+    while byte:
+        UTF16Stream.append(byte)
+        byte = fr.read(2)
+
+    for x in UTF16Stream:
+        string = str('{0:08b}'.format((decode(x))))
+        if decode(x) < 128:
+            result = '0' + string
+            result = hex(int(result, 2))
+            if len(result) % 2 == 1:
+                result = unhexlify('0a')
+            else:
+                result = unhexlify(result[2:])
+            fw.write(result)
+
+        elif decode(x) < 2048:
+            result = '1100000010000000'
+            diff = len(result) - len(string)
+            for i in range(diff):
+                string = '0' + string
+            string = string[::-1]
+            result = result[::-1]
+            s = list(string)
+            r = list(result)
+
+            for i in range(6):
+                r[i] = s[i]
+            for j in xrange(8,13):
+                i += 1
+                r[j] = s[i]
+            string = ''.join(s)
+            result = ''.join(r)[::-1]
+            fw.write(unhexlify(hex(int(result, 2))[2:]))
+
+
+        else:
+            result = '111000001000000010000000'
+            diff = len(result) - len(string)
+            for i in range(diff):
+                string = '0' + string
+            string = string[::-1]
+            result = result[::-1]
+
+            s = list(string)
+            r = list(result)
+
+            for i in range(6):
+                r[i] = s[i]
+            for j in xrange(8,14):
+                i += 1
+                r[j] = s[i]
+            for l in xrange(16,20):
+                i += 1
+                r[l] = s[i]
+            string = ''.join(s)
+            result = ''.join(r)[::-1]
+            fw.write(unhexlify(hex(int(result, 2))[2:]))
+
+finally:
+    fr.close()
+    fw.close()
